@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ 	   xmlns:batch="http://www.springframework.org/schema/batch" 
+ 	   xsi:schemaLocation="http://www.springframework.org/schema/beans 
+ 	   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+ 	   http://www.springframework.org/schema/batch 
+ 	   http://www.springframework.org/schema/batch/spring-batch-2.1.xsd">
+ 	   
+ <!-- @author: Elton Murillo -->
+ <!-- @date: 08/30/2014 -->
+ <!-- @description: This project is responsible of parsing each CSV file
+ 				    and storing in the database.
+ -->
+
+<!-- job -->
+	<batch:job id="importStocks">
+	    <batch:step id="readWriteStocks">
+	      <batch:tasklet>
+	￼        <batch:chunk reader="reader" 
+						 writer="writer"
+	                     commit-interval="1000" />
+	      </batch:tasklet>
+	    </batch:step>
+
+	</batch:job>
+
+<!-- bean declaration -->
+
+   <!-- item reader -->
+   <bean id="reader"
+         class="org.springframework.batch.item.file.FlatFileItemReader">
+
+		<property name="resource" value="datafile.txt"/>
+		<property name="linesToSkip" value="1"/> 
+		<property name="recordSeparatorPolicy"
+			      ref="productRecordSeparatorPolicy"/> 
+	    <property name="lineMapper" ref="productLineMapper"/>
+   </bean>
+   
+   <!-- item reader components -->
+   
+   	   <!-- record separator policy -->
+	   <bean id="productRecordSeparatorPolicy" 
+	         class="class="org.springframework.batch.item.file.DefaultRecordSeparatorPolicy">
+	   </bean>
+   
+       <!-- line mapper -->
+	   <bean id="lineMapper" 
+	         class="org.springframework.batch.item.file.mapping.PassThroughLineMapper"/>
+  
+  		<!-- line tokenizer -->
+		<bean id=" productLineTokenizer"
+		      class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer"> 
+		      
+		      <property name="delimiter" value=","/>
+		  	  <property name="names"
+		                value="id,name,description,price"/>
+		</bean>
+		
+		<!-- fieldset mapper -->
+		<bean id="productFieldSetMapper"
+      		  class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper"> 
+      		  
+      		  <property name="prototypeBeanName" value="product"/>
+		</bean>
+	
+  <!-- item writer -->
+  <bean id="writer"
+        class="org.springframework.batch.item.file.FlatFileItemWriter">
+  </bean>
+  
+  <!-- pojo(plain old java object) -->  
+  <bean id="product"
+        class="com.manning.sbia.reading.Product"
+        scope="prototype"/>
+
+  
+</beans>
